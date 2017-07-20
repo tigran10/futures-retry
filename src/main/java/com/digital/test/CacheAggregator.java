@@ -16,7 +16,6 @@ import java.util.concurrent.Executors;
 public class CacheAggregator  implements CacheService {
 
     ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
-    List<ListenableFuture<Object>> futures = Lists.newArrayList();
 
     private List<CacheService> caches = Lists.newArrayList();
 
