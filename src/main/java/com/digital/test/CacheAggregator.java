@@ -19,7 +19,7 @@ import static com.google.common.collect.Lists.transform;
 
 public class CacheAggregator implements CacheService {
 
-    ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
+    private ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
 
     private List<CacheService> caches = ImmutableList.of();
 
