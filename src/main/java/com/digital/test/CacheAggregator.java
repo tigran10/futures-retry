@@ -4,11 +4,14 @@ package com.digital.test;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.*;
 
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 import static com.google.common.collect.ImmutableList.copyOf;
@@ -25,40 +28,59 @@ public class CacheAggregator implements CacheService {
     }
 
     public Object get(String key) {
-        List<Callable<Object>> retrieveTasks = copyOf(transform(caches, retrieveFunctionByKey(key)));
+        List<Task<Object>> retrieveTasks = copyOf(transform(caches, cacheRetrievalFunction(key)));
         List<ListenableFuture<Object>> futures = Lists.newArrayList();
 
 
-        for (Callable<Object> task : retrieveTasks) {
-            futures.add(executor.submit(task));
+        for (Task<Object> task : retrieveTasks) {
+            ListenableFuture<Object> futureRetrieve = executor.submit(task);
+            Futures.addCallback(futureRetrieve, cacheRetrievalCallback(task.getName()), executor);
         }
 
-        final ListenableFuture<List<Object>> resultsFuture = Futures.allAsList(futures);
+        ListenableFuture<List<Object>> listListenableFuture = Futures.successfulAsList(futures);
+        try {
+            List<Object> objects = listListenableFuture.get();
+            warnForInconsistentCacheEntries(objects);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("super unexpected thing");
 
-        Futures.addCallback(resultsFuture, createCallback(), executor);
-
+        }
 
         return null;
+
     }
 
 
-    private FutureCallback<Object> createCallback() {
+    //todo this should be much more clever, respecting nulls
+    private void warnForInconsistentCacheEntries(List<Object> objects) {
+        if (Sets.newHashSet(objects).size() != 1) {
+            System.out.println("super unexpected thing");
+        }
+    }
+
+
+    private FutureCallback<Object> cacheRetrievalCallback(final String cachName) {
         return new FutureCallback<Object>() {
             public void onSuccess(Object object) {
-                System.out.println("wohoo got value from cache");
+                System.out.println("wohoo got value from cache: " + cachName);
             }
 
             public void onFailure(Throwable t) {
-                System.out.println("holly crap, just failed on getting value from cache");
+                System.out.println("holly crap, just failed on getting value from cache: " + cachName);
             }
         };
     }
 
 
-    private Function<CacheService, Callable<Object>> retrieveFunctionByKey(final String key) {
-        return new Function<CacheService, Callable<Object>>() {
-            public Callable<Object> apply(final CacheService cache) {
-                return new Callable<Object>() {
+    private Function<CacheService, Task<Object>> cacheRetrievalFunction(final String key) {
+        return new Function<CacheService, Task<Object>>() {
+            public Task<Object> apply(final CacheService cache) {
+                return new Task<Object>() {
+                    public String getName() {
+                        return cache.name();
+                    }
+
                     public Object call() throws Exception {
                         System.out.println("trying to get key " + key + "from cache name" + cache);
                         return cache.get(key);
@@ -68,5 +90,12 @@ public class CacheAggregator implements CacheService {
         };
 
     }
-}
 
+    interface Task<V> extends Callable<V> {
+        String getName();
+    }
+
+    public String name() {
+        return "joined cache";
+    }
+}
