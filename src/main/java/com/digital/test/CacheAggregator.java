@@ -29,15 +29,10 @@ public class CacheAggregator implements CacheService {
 
     public Object get(String key) {
         List<Task<Object>> retrieveTasks = copyOf(transform(caches, cacheRetrievalFunction(key)));
-        List<ListenableFuture<Object>> futures = Lists.newArrayList();
 
-
-        for (Task<Object> task : retrieveTasks) {
-            ListenableFuture<Object> futureRetrieve = executor.submit(task);
-            Futures.addCallback(futureRetrieve, cacheRetrievalCallback(task.getName()), executor);
-        }
-
+        List<ListenableFuture<Object>> futures = submitTasks(retrieveTasks);
         ListenableFuture<List<Object>> listListenableFuture = Futures.successfulAsList(futures);
+
         try {
             List<Object> objects = listListenableFuture.get();
             warnForInconsistentCacheEntries(objects);
@@ -49,6 +44,16 @@ public class CacheAggregator implements CacheService {
 
         return null;
 
+    }
+
+    private List<ListenableFuture<Object>> submitTasks(List<Task<Object>> retrieveTasks) {
+        List<ListenableFuture<Object>> futures = Lists.newArrayList();
+        for (Task<Object> task : retrieveTasks) {
+            ListenableFuture<Object> futureRetrieve = executor.submit(task);
+            Futures.addCallback(futureRetrieve, cacheRetrievalCallback(task.getName()), executor);
+            futures.add(futureRetrieve);
+        }
+        return futures;
     }
 
 
