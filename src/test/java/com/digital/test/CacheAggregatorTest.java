@@ -1,21 +1,19 @@
 package com.digital.test;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
-
-import org.fest.assertions.api.Assertions.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
+
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CacheAggregatorTest {
@@ -64,26 +62,33 @@ public class CacheAggregatorTest {
 
     @Test
     public void testCacheAggregatorTouchesEachCacheOnce() {
-        given(fooCache.get(anyString())).willReturn("carrot");
-        given(barCache.get(anyString())).willReturn("carrot");
 
+        //given
+        given(fooCache.get(anyString())).willReturn("carrot");
+        given(barCache.get(anyString())).willReturn("apple");
+
+        //then
         assertThat(cache.get("random")).isEqualTo("carrot");
     }
 
 
     @Test
     public void testCacheAggregatorGetReturnsFirstNotNullValue() {
+        //given
         given(fooCache.get(anyString())).willReturn(null);
         given(barCache.get(anyString())).willReturn("carrot");
 
+        //then
         assertThat(cache.get("random")).isEqualTo("carrot");
     }
 
     @Test
     public void testCacheAggregatorGetReturnsFirstNotNullValueEvenIfOneOfThemDies() {
+        //given
         given(fooCache.get(anyString())).willThrow(new RuntimeException("i am dead"));
         given(barCache.get(anyString())).willReturn("carrot");
 
+        //then
         assertThat(cache.get("random")).isEqualTo("carrot");
     }
 
@@ -105,8 +110,8 @@ public class CacheAggregatorTest {
         //and then
         List<String> values = argumentCaptor.getAllValues();
 
-        assertThat(values).contains("trying to get key randomfrom cache name fooCache");
-        assertThat(values).contains("trying to get key randomfrom cache name barCache");
+        assertThat(values).contains("trying to get key random from cache name fooCache");
+        assertThat(values).contains("trying to get key random from cache name barCache");
 
         assertThat(values).contains("wohoo got value from cache: fooCache");
         assertThat(values).contains("wohoo got value from cache: barCache");
@@ -132,8 +137,8 @@ public class CacheAggregatorTest {
         //and then
         List<String> values = argumentCaptor.getAllValues();
 
-        assertThat(values).contains("trying to get key randomfrom cache name fooCache");
-        assertThat(values).contains("trying to get key randomfrom cache name barCache");
+        assertThat(values).contains("trying to get key random from cache name fooCache");
+        assertThat(values).contains("trying to get key random from cache name barCache");
         assertThat(values).contains("holly crap, just failed on getting value from cache: fooCache");
         assertThat(values).contains("holly crap, just failed on getting value from cache: barCache");
 
@@ -159,8 +164,8 @@ public class CacheAggregatorTest {
         //and then
         List<String> values = argumentCaptor.getAllValues();
 
-        assertThat(values).contains("trying to get key randomfrom cache name fooCache");
-        assertThat(values).contains("trying to get key randomfrom cache name barCache");
+        assertThat(values).contains("trying to get key random from cache name fooCache");
+        assertThat(values).contains("trying to get key random from cache name barCache");
         assertThat(values).contains("holly crap, just failed on getting value from cache: fooCache");
         assertThat(values).contains("wohoo got value from cache: barCache");
 
@@ -185,7 +190,6 @@ public class CacheAggregatorTest {
 
         //and then
         List<String> values = argumentCaptor.getAllValues();
-
         assertThat(values).contains("world is very inconsistent");
 
     }

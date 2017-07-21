@@ -31,11 +31,16 @@ public class CacheAggregator implements CacheService {
         List<Task<Object>> retrieveTasks = copyOf(transform(caches, cacheRetrievalFunction(key)));
 
         List<ListenableFuture<Object>> futures = submitTasks(retrieveTasks);
+
+        // more info here https://github.com/google/guava/wiki/ListenableFutureExplained
         ListenableFuture<List<Object>> listListenableFuture = Futures.successfulAsList(futures);
         Optional<Object> result;
 
         try {
             List<Object> objects = listListenableFuture.get();
+            for (Object o: objects) {
+                System.out.println(o);
+            }
             warnForInconsistentCacheEntries(objects);
             result = Iterables.tryFind(objects, Predicates.notNull());
         } catch (Exception e) {
@@ -92,7 +97,7 @@ public class CacheAggregator implements CacheService {
                     }
 
                     public Object call() throws Exception {
-                        getLogger().log("trying to get key " + key + "from cache name " + cache);
+                        getLogger().log("trying to get key " + key + " from cache name " + cache);
                         return cache.get(key);
                     }
                 };
