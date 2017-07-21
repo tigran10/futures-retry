@@ -55,8 +55,9 @@ public class CacheAggregator implements CacheService {
             warnForInconsistentCacheEntries(objects);
             result = tryFind(objects, notNull());
         } catch (Exception e) {
+            getLogger().log(e.getMessage());
             e.printStackTrace();
-            getLogger().log("super unexpected thing");
+            getLogger().log("unexpected exception during collecting cache results from executor tasks");
             throw new RuntimeException(e);
         }
 
@@ -96,11 +97,11 @@ public class CacheAggregator implements CacheService {
     private FutureCallback<Object> cacheRetrievalCallback(final String cachName) {
         return new FutureCallback<Object>() {
             public void onSuccess(Object object) {
-                getLogger().log("wohoo got value from cache: " + cachName);
+                getLogger().log("successfull retrieval from cache:  " + cachName);
             }
 
             public void onFailure(Throwable t) {
-                getLogger().log("holly crap, just failed on getting value from cache: " + cachName);
+                getLogger().log("unsuccessfull retrieval from cache:  " + cachName);
             }
         };
     }

@@ -116,8 +116,8 @@ public class CacheAggregatorTest {
         assertThat(values).contains("trying to get key random from cache name fooCache");
         assertThat(values).contains("trying to get key random from cache name barCache");
 
-        assertThat(values).contains("wohoo got value from cache: fooCache");
-        assertThat(values).contains("wohoo got value from cache: barCache");
+        assertThat(values).contains("successfull retrieval from cache:  fooCache");
+        assertThat(values).contains("successfull retrieval from cache:  barCache");
 
     }
 
@@ -144,8 +144,8 @@ public class CacheAggregatorTest {
 
         assertThat(values).contains("trying to get key random from cache name fooCache");
         assertThat(values).contains("trying to get key random from cache name barCache");
-        assertThat(values).contains("holly crap, just failed on getting value from cache: fooCache");
-        assertThat(values).contains("holly crap, just failed on getting value from cache: barCache");
+        assertThat(values).contains("unsuccessfull retrieval from cache:  fooCache");
+        assertThat(values).contains("unsuccessfull retrieval from cache:  barCache");
 
     }
 
@@ -170,8 +170,8 @@ public class CacheAggregatorTest {
 
         assertThat(values).contains("trying to get key random from cache name fooCache");
         assertThat(values).contains("trying to get key random from cache name barCache");
-        assertThat(values).contains("holly crap, just failed on getting value from cache: fooCache");
-        assertThat(values).contains("wohoo got value from cache: barCache");
+        assertThat(values).contains("unsuccessfull retrieval from cache:  fooCache");
+        assertThat(values).contains("successfull retrieval from cache:  barCache");
 
     }
 
