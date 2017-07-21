@@ -35,8 +35,16 @@ public class CacheAggregator implements CacheService {
 
         // more info here https://github.com/google/guava/wiki/ListenableFutureExplained
         ListenableFuture<List<Object>> listListenableFuture = successfulAsList(futures);
-        Optional<Object> result;
+        Optional<Object> result = collectResultsFromFuture(listListenableFuture);
 
+        return result.orNull();
+
+    }
+
+
+    private Optional<Object> collectResultsFromFuture(ListenableFuture<List<Object>> listListenableFuture) {
+
+        Optional<Object> result;
         try {
             List<Object> objects = listListenableFuture.get();
             warnForInconsistentCacheEntries(objects);
@@ -47,7 +55,7 @@ public class CacheAggregator implements CacheService {
             throw new RuntimeException(e);
         }
 
-        return result.orNull();
+        return result;
 
     }
 
