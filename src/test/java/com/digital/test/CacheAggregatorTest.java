@@ -131,7 +131,7 @@ public class CacheAggregatorTest {
 
         //when
         cache.get("random");
-
+        waitABit();
 
         //then
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
@@ -139,7 +139,7 @@ public class CacheAggregatorTest {
 
 
         //and then
-        waitABit();
+
         List<String> values = argumentCaptor.getAllValues();
 
         assertThat(values).contains("trying to get key random from cache name fooCache");
@@ -158,6 +158,7 @@ public class CacheAggregatorTest {
 
         //when
         cache.get("random");
+        waitABit();
 
         //then
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
@@ -165,7 +166,6 @@ public class CacheAggregatorTest {
 
 
         //and then
-        waitABit();
         List<String> values = argumentCaptor.getAllValues();
 
         assertThat(values).contains("trying to get key random from cache name fooCache");
@@ -186,6 +186,83 @@ public class CacheAggregatorTest {
 
         //when
         cache.get("random");
+        waitABit();
+
+        //then
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(logger, atLeast(1)).log(argumentCaptor.capture());
+
+
+        //and then
+
+        List<String> values = argumentCaptor.getAllValues();
+        assertThat(values).contains("inconsistent result been recorded between caches, please investigate");
+
+    }
+
+
+    @Test
+    public void testCacheAggregatorCallsWarningLogsWhenOneOfTheCachesReturnsNull() throws Exception {
+
+        //given
+        given(fooCache.get(anyString())).willReturn("apple");
+        given(barCache.get(anyString())).willReturn(null);
+
+
+
+        //when
+        cache.get("random");
+        waitABit();
+
+        //then
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(logger, atLeast(1)).log(argumentCaptor.capture());
+
+
+        //and then
+
+        List<String> values = argumentCaptor.getAllValues();
+        assertThat(values).contains("NULL result been recorded from one of the caches, investigate the inconsistency");
+
+    }
+
+
+    @Test
+    public void testCacheAggregatorCallsWarningLogsWhenAllCachesAreReturningNull() throws Exception {
+
+        //given
+        given(fooCache.get(anyString())).willReturn(null);
+        given(barCache.get(anyString())).willReturn(null);
+
+
+
+        //when
+        cache.get("random");
+        waitABit();
+
+        //then
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(logger, atLeast(1)).log(argumentCaptor.capture());
+
+
+        //and then
+
+        List<String> values = argumentCaptor.getAllValues();
+        assertThat(values).contains("warning, unlikely event of getting miss from all caches");
+
+    }
+
+    @Test
+    public void testCacheAggregatorCallsWarningLogsWhenAllCachesAreReturningNullDueToErrors() throws Exception {
+
+        //given
+        given(fooCache.get(anyString())).willThrow(new RuntimeException("i am dead"));
+        given(barCache.get(anyString())).willThrow(new RuntimeException("i am dead"));
+
+
+
+        //when
+        cache.get("random");
 
 
         //then
@@ -196,12 +273,13 @@ public class CacheAggregatorTest {
         //and then
         waitABit();
         List<String> values = argumentCaptor.getAllValues();
-        assertThat(values).contains("world is very inconsistent");
+        assertThat(values).contains("warning, unlikely event of getting miss from all caches");
 
     }
 
+
     private void waitABit() throws InterruptedException {
-        Thread.sleep(100);
+        Thread.sleep(10);
     }
 
 }
