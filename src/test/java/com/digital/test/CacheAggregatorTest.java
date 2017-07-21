@@ -45,7 +45,7 @@ public class CacheAggregatorTest {
 
 
     @Test
-    public void testCacheAggregatorGetReturnsFirstAvailableValue() {
+    public void testCacheAggregatorGetReturnsFirstAvailableValue() throws Exception {
         //given
         given(fooCache.get(anyString())).willReturn("apple");
         given(barCache.get(anyString())).willReturn("carrot");
@@ -55,13 +55,14 @@ public class CacheAggregatorTest {
         cache.get("random");
 
         //then
+        waitABit();
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
         verify(fooCache, atLeast(1)).get(argumentCaptor.capture());
         verify(barCache, atLeast(1)).get(argumentCaptor.capture());
     }
 
     @Test
-    public void testCacheAggregatorTouchesEachCacheOnce() {
+    public void testCacheAggregatorTouchesEachCacheOnce() throws Exception {
 
         //given
         given(fooCache.get(anyString())).willReturn("carrot");
@@ -73,7 +74,7 @@ public class CacheAggregatorTest {
 
 
     @Test
-    public void testCacheAggregatorGetReturnsFirstNotNullValue() {
+    public void testCacheAggregatorGetReturnsFirstNotNullValue() throws Exception {
         //given
         given(fooCache.get(anyString())).willReturn(null);
         given(barCache.get(anyString())).willReturn("carrot");
@@ -93,7 +94,7 @@ public class CacheAggregatorTest {
     }
 
     @Test
-    public void testCacheAggregatorCallsSuccessCallbackOnEachCache() {
+    public void testCacheAggregatorCallsSuccessCallbackOnEachCache() throws Exception {
 
         //given
         given(fooCache.get(anyString())).willReturn("carrot");
@@ -102,12 +103,14 @@ public class CacheAggregatorTest {
 
         //when
         cache.get("random");
+        waitABit();
 
         //then
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
         verify(logger, atLeast(2)).log(argumentCaptor.capture());
 
         //and then
+
         List<String> values = argumentCaptor.getAllValues();
 
         assertThat(values).contains("trying to get key random from cache name fooCache");
@@ -119,7 +122,7 @@ public class CacheAggregatorTest {
     }
 
     @Test
-    public void testCacheAggregatorCallsFailureCallbackOnEachCache() {
+    public void testCacheAggregatorCallsFailureCallbackOnEachCache() throws Exception {
 
         //given
         given(fooCache.get(anyString())).willThrow(new RuntimeException("i am dead"));
@@ -129,12 +132,14 @@ public class CacheAggregatorTest {
         //when
         cache.get("random");
 
+
         //then
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
         verify(logger, atLeast(2)).log(argumentCaptor.capture());
 
 
         //and then
+        waitABit();
         List<String> values = argumentCaptor.getAllValues();
 
         assertThat(values).contains("trying to get key random from cache name fooCache");
@@ -145,13 +150,11 @@ public class CacheAggregatorTest {
     }
 
     @Test
-    public void testCacheAggregatorCallsFailureAndSuccessCallbacks() {
+    public void testCacheAggregatorCallsFailureAndSuccessCallbacks() throws Exception{
 
         //given
         given(fooCache.get(anyString())).willThrow(new RuntimeException("i am dead"));
         given(barCache.get(anyString())).willReturn("I am not");
-        
-
 
         //when
         cache.get("random");
@@ -162,6 +165,7 @@ public class CacheAggregatorTest {
 
 
         //and then
+        waitABit();
         List<String> values = argumentCaptor.getAllValues();
 
         assertThat(values).contains("trying to get key random from cache name fooCache");
@@ -172,7 +176,7 @@ public class CacheAggregatorTest {
     }
 
     @Test
-    public void testCacheAggregatorCallsWarningLogsWhenInconsistentResultsAreRecorded() {
+    public void testCacheAggregatorCallsWarningLogsWhenInconsistentResultsAreRecorded() throws Exception {
 
         //given
         given(fooCache.get(anyString())).willReturn("apple");
@@ -183,15 +187,21 @@ public class CacheAggregatorTest {
         //when
         cache.get("random");
 
+
         //then
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
         verify(logger, atLeast(1)).log(argumentCaptor.capture());
 
 
         //and then
+        waitABit();
         List<String> values = argumentCaptor.getAllValues();
         assertThat(values).contains("world is very inconsistent");
 
+    }
+
+    private void waitABit() throws InterruptedException {
+        Thread.sleep(100);
     }
 
 }
