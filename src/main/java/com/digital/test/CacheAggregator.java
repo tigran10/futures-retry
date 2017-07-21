@@ -3,9 +3,7 @@ package com.digital.test;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.*;
 
@@ -13,7 +11,9 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 
+import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
 import static com.google.common.util.concurrent.Futures.addCallback;
@@ -48,7 +48,7 @@ public class CacheAggregator implements CacheService {
         try {
             List<Object> objects = listListenableFuture.get();
             warnForInconsistentCacheEntries(objects);
-            result = Iterables.tryFind(objects, Predicates.notNull());
+            result = tryFind(objects, notNull());
         } catch (Exception e) {
             e.printStackTrace();
             getLogger().log("super unexpected thing");
